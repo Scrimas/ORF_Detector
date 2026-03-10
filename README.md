@@ -1,3 +1,5 @@
+## Overview
+
 **ORF_Detector** is a purely foundational, from-scratch bioinformatics tool written in Python. It parses standard FASTA files, identifies valid Open Reading Frames (ORFs), transcribes DNA into mRNA, and translates sequences into both 3-letter and 1-letter amino acid structures.
 
 ## The "Vanilla Python" Philosophy
