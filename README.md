@@ -8,8 +8,6 @@ If you are reviewing this code, you might wonder why I manually hardcoded a 64-c
 
 **This is an intentional and pedagogical constraint.** As a 3rd-year biology student in Grenoble, my goal was to deeply understand and computationally replicate the mechanical logic of the ribosomal machinery. Relying on "black box" libraries would defeat the purpose of the exercise. Every algorithmic choice—from the step-of-3 indexing to the reverse-complement strand mathematics—was written explicitly to prove a granular understanding of genomic translation.
 
----
-
 ## Core Features
 
 - **Custom Multi-FASTA Parsing:** Efficiently handles multi-line sequence concatenation and whitespace stripping without external dependencies.
@@ -21,9 +19,6 @@ If you are reviewing this code, you might wonder why I manually hardcoded a 64-c
 - **Bi-Directional Coordinate Mapping:** Accurately maps the 1-based start/end coordinates of reverse-complement ORFs back to the original forward strand reference.
     
 - **Batch Processing:** Automatically processes all `.fasta` files in the `/data` directory and exports structured reports to `/results`.
-    
-
----
 
 ## Architecture
 
@@ -42,8 +37,6 @@ ORF_Detector/
     └── main.py            # The central execution orchestrator
 ```
 
----
-
 ## Usage
 
 1. **Prepare Data:** Place your target `.fasta` files into the `data/` directory.
@@ -58,8 +51,6 @@ ORF_Detector/
 
 4. **Review:** Retrieve detailed analysis reports in the `results/` folder.
 
----
-
 ## About the Author
 
 **Ismaël PHILIPPE**
@@ -68,7 +59,6 @@ _3rd-year Biology Student | Grenoble, France_
 
 I am focused on bridging the gap between life sciences and computer science. This project serves as a practical demonstration of translating complex biological paradigms into functional, modular code.
 
----
 
 ## License
 
