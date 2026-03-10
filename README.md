@@ -6,7 +6,7 @@
 
 If you are reviewing this code, you might wonder why I manually hardcoded a 64-codon dictionary or built custom string-slicing loops to map reading frames instead of simply importing `Bio.Seq` from Biopython.
 
-**This is an intentional and pedagogical constraint.** As a 3rd-year biology student in Grenoble, my goal was to deeply understand and computationally replicate the mechanical logic of the ribosomal machinery. Relying on "black box" libraries would defeat the purpose of the exercise. Every algorithmic choice—from the step-of-3 indexing to the reverse-complement strand mathematics—was written explicitly to prove a granular understanding of genomic translation.
+**This is an intentional and pedagogical constraint.** As a 3rd-year biology student in Grenoble, my goal was to deeply understand and computationally replicate the mechanical logic of the ribosomal machinery. Relying on "black box" libraries would defeat the purpose of the exercise. Every algorithmic choice (from the step-of-3 indexing to the reverse-complement strand mathematics) was written explicitly to prove a granular understanding of genomic translation.
 
 ## Core Features
 
