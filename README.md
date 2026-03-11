@@ -2,6 +2,10 @@
 
 **ORF_Detector** is a purely foundational, from-scratch bioinformatics tool written in Python. It parses standard FASTA files, identifies valid Open Reading Frames (ORFs), transcribes DNA into mRNA, and translates sequences into both 3-letter and 1-letter amino acid structures.
 
+## Project Status
+
+**Completed / Pedagogical.** This repository was created as a foundational learning exercise and portfolio piece. It is fully functional for its intended purpose, but it may or may not receive active updates or maintenance in the future.
+
 ## The "Vanilla Python" Philosophy
 
 If you are reviewing this code, you might wonder why I manually hardcoded a 64-codon dictionary or built custom string-slicing loops to map reading frames instead of simply importing `Bio.Seq` from Biopython.
@@ -11,20 +15,20 @@ If you are reviewing this code, you might wonder why I manually hardcoded a 64-c
 ## Core Features
 
 - **Custom Multi-FASTA Parsing:** Efficiently handles multi-line sequence concatenation and whitespace stripping without external dependencies.
-    
+
 - **Strict ORF Detection:** Scans both forward (+) and reverse (-) strands for the `ATG` start codon, stepping exactly in-frame (modulo 3) until a stop codon (`TAA`, `TAG`, `TGA`) is reached.
-    
+
 - **Intelligent Redundancy Filtering:** Utilizes a heuristic `used_stops` tracking system to prioritize the longest functional reading frame and prevent reporting smaller, nested ORFs.
-    
+
 - **Bi-Directional Coordinate Mapping:** Accurately maps the 1-based start/end coordinates of reverse-complement ORFs back to the original forward strand reference.
-    
+
 - **Batch Processing:** Automatically processes all `.fasta` files in the `/data` directory and exports structured reports to `/results`.
 
 ## Architecture
 
 The directory structure intentionally mirrors the biological flow of information:
 
-```
+```text
 ORF_Detector/
 ├── data/                  # Input .fasta files
 ├── results/               # Output text reports
@@ -43,21 +47,13 @@ ORF_Detector/
     
 2. **Run Pipeline:** Execute the main script from the root directory:
 
-    ```
-    python src/main.py
-    ```
+```bash
+python src/main.py
+```
 
 3. **Configure:** Enter your desired minimum ORF size in amino acids (defaults to 50) when prompted.
 
 4. **Review:** Retrieve detailed analysis reports in the `results/` folder.
-
-## About the Author
-
-**Ismaël PHILIPPE**
-
-_3rd-year Biology Student | Grenoble, France_
-
-I am focused on bridging the gap between life sciences and computer science. This project serves as a practical demonstration of translating complex biological paradigms into functional, modular code.
 
 
 ## License
