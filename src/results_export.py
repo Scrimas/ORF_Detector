@@ -2,7 +2,7 @@ def export_orfs_to_txt(orfs_list, output_file_path):
     with open(output_file_path, 'w', encoding='utf-8') as f:
         f.write("=== ANALYSIS REPORT: ORF DETECTION ===\n")
         f.write(f"Total valid ORFs found: {len(orfs_list)}\n")
-        f.write("=" * 44 + "\n\n")
+        f.write("=" * 38 + "\n\n")
         for i, orf in enumerate(orfs_list, start=1):
             seq_id = orf.get("sequence_id", "Unknown")
             strand = orf.get("strand", "Unspecified")

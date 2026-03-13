@@ -1,6 +1,6 @@
 === ANALYSIS REPORT: ORF DETECTION ===
 Total valid ORFs found: 3
-============================================
+======================================
 
 --- ORF 1 ---
 Original Sequence: NM_000207.3 Homo sapiens insulin (INS), transcript variant 1, mRNA
