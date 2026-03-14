@@ -1,6 +1,6 @@
 ## Overview
 
-**ORF_Detector** is a purely foundational, from-scratch bioinformatics tool written in Python. It parses standard FASTA files, identifies valid Open Reading Frames (ORFs), transcribes DNA into mRNA, translates sequences into amino acids, and calculates key biochemical properties (Mass, Tm, pI, Extinction Coefficient) for all identified molecules.
+**SeqProfiler** is a purely foundational, from-scratch bioinformatics tool written in Python. It parses standard FASTA files, identifies valid Open Reading Frames (ORFs), transcribes DNA into mRNA, translates sequences into amino acids, and calculates key biochemical properties (Mass, Tm, pI, Extinction Coefficient) for all identified molecules.
 
 ## Project Status
 
@@ -31,7 +31,7 @@ If you are reviewing this code, you might wonder why I manually hardcoded a 64-c
 The directory structure intentionally mirrors the biological flow of information:
 
 ```text
-ORF_Detector/
+SeqProfiler/
 ├── data/                       # Input .fasta files
 ├── results/                    # Output text reports
 └── src/
@@ -49,7 +49,7 @@ ORF_Detector/
 1. **Clone repository**
 
 ```bash
-git clone https://github.com/Scrimas/ORF_Detector
+git clone https://github.com/Scrimas/SeqProfiler
 ```
 
 2. **Prepare Data:** Place your target `.fasta` files into the `data/` directory.
