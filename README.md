@@ -55,10 +55,8 @@ SeqProfiler/
 ```bash
 git clone https://github.com/Scrimas/SeqProfiler
 ```
-
-2. **Prepare Data:** Place your target `.fasta` files into the `data/` directory.
     
-3. **Run Pipeline:** Execute the main script from the root directory. You can specify the minimum ORF size, input directory, and output directory using command-line arguments:
+2. **Run Pipeline:** Execute the main script from the root directory:
 
 ```bash
 # Using default settings (min-length: 50, input: ./data/, output: ./results/)
@@ -70,6 +68,8 @@ python src/main.py
 python src/main.py --min-length 100 --input ./my_data --output ./my_results
 ```
 
+3. **Review:** Retrieve detailed analysis reports in your specified output folder (defaults to `results/`).
+
 ### Available Options
 
 | Argument | Description | Default |
@@ -77,9 +77,6 @@ python src/main.py --min-length 100 --input ./my_data --output ./my_results
 | `--min-length` | Minimum ORF size in amino acids | `50` |
 | `--input` | Path to directory containing `.fasta` files | `data/` |
 | `--output` | Path to directory for analysis reports | `results/` |
-
-4. **Review:** Retrieve detailed analysis reports in your specified output folder (defaults to `results/`).
-
 
 ## License
 
