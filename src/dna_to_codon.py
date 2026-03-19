@@ -38,5 +38,5 @@ def get_orfs(dna_sequence: str, min_length_aa: int = 50) -> List[Dict]:
                                     "sequence": orf_sequence
                                 })
                                 used_stops.add(end_pos)
-                        break # Move to next search after finding a stop
+                        break
     return found_orfs
