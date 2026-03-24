@@ -2,7 +2,7 @@ import argparse
 import sys
 from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Set
 
 from dna_to_rna import dna_to_rna
 from fasta_to_dna import fasta_to_dna
@@ -27,7 +27,7 @@ def print_progress_bar(iteration: int, total: int, prefix: str = '', suffix: str
     if iteration == total:
         sys.stdout.write('\n')
 
-def process_single_file(file_path: Path, min_length: int, results_dir: Path) -> str:
+def process_single_file(file_path: Path, min_length: int, start_codons: Set[str], results_dir: Path) -> str:
     """
     Processes a single FASTA file: identifies ORFs, calculates properties, and exports results.
     Designed to be run in parallel.
@@ -40,7 +40,7 @@ def process_single_file(file_path: Path, min_length: int, results_dir: Path) -> 
             seq_len = len(main_sequence)
             
             # Forward Strand Processing
-            positive_orfs = get_orfs(main_sequence, min_length_aa=min_length)
+            positive_orfs = get_orfs(main_sequence, min_length_aa=min_length, start_codons=start_codons)
             for orf in positive_orfs:
                 orf.update({
                     "sequence_id": seq_id,
@@ -55,7 +55,7 @@ def process_single_file(file_path: Path, min_length: int, results_dir: Path) -> 
                 
             # Reverse Strand Processing
             reverse_complement = main_sequence.translate(str.maketrans("ATCG", "TAGC"))[::-1]
-            negative_orfs = get_orfs(reverse_complement, min_length_aa=min_length)
+            negative_orfs = get_orfs(reverse_complement, min_length_aa=min_length, start_codons=start_codons)
             for orf in negative_orfs:
 
                 true_start = seq_len - orf["end_position"] + 1
@@ -92,7 +92,10 @@ def main():
     parser.add_argument("--input", type=str, default=None, help="Path to input directory [default: data/]")
     parser.add_argument("--output", type=str, default=None, help="Path to output directory [default: results/]")
     parser.add_argument("--workers", type=int, default=None, help="Number of parallel workers [default: CPU count]")
+    parser.add_argument("--start-codons", type=str, default="ATG", help="Comma-separated list of alternative start codons (e.g., ATG,CTG,GTG) [default: ATG]")
     args = parser.parse_args()
+
+    start_codons_set = {codon.strip().upper() for codon in args.start_codons.split(",") if codon.strip()}
 
     print("\n" + "="*50)
     print(" "*19 + "SeqProfiler")
@@ -113,17 +116,18 @@ def main():
         return
 
     print(f"[*] Configuration:")
-    print(f"    - Input:  {data_dir}")
-    print(f"    - Output: {results_dir}")
-    print(f"    - Min AA: {args.min_length}")
-    print(f"    - Files:  {len(fasta_files)}\n")
+    print(f"    - Input:        {data_dir}")
+    print(f"    - Output:       {results_dir}")
+    print(f"    - Start Codons: {', '.join(start_codons_set)}")
+    print(f"    - Min AA:       {args.min_length}")
+    print(f"    - Files:        {len(fasta_files)}\n")
 
     print(f"[*] Starting Analysis...")
     print_progress_bar(0, len(fasta_files), prefix='Progress:', suffix='Complete', length=40)
     
     results = []
     with ProcessPoolExecutor(max_workers=args.workers) as executor:
-        future_to_file = {executor.submit(process_single_file, f, args.min_length, results_dir): f for f in fasta_files}
+        future_to_file = {executor.submit(process_single_file, f, args.min_length, start_codons_set, results_dir): f for f in fasta_files}
         
         completed = 0
         for future in as_completed(future_to_file):

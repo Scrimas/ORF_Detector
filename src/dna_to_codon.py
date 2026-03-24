@@ -1,19 +1,23 @@
-from typing import List, Dict, Set
+from typing import List, Dict, Set, Optional
 
-def get_orfs(dna_sequence: str, min_length_aa: int = 50) -> List[Dict]:
+def get_orfs(dna_sequence: str, min_length_aa: int = 50, start_codons: Optional[Set[str]] = None) -> List[Dict]:
     """
     Identifies Open Reading Frames (ORFs) in a DNA sequence.
     
     Optimized to find non-redundant ORFs (longest frame per stop codon) and uses 
-    frame-based scanning for better efficiency.
+    frame-based scanning for better efficiency. Supports alternative start codons.
 
     Args:
         dna_sequence (str): The DNA sequence to scan.
         min_length_aa (int): Minimum length of the ORF in amino acids.
+        start_codons (Set[str], optional): Allowed start codons. Defaults to {"ATG"}.
 
     Returns:
         List[Dict]: A list of dictionaries containing start, end, and sequence of each ORF.
     """
+    if start_codons is None:
+        start_codons = {"ATG"}
+        
     found_orfs = []
     seq_len = len(dna_sequence)
     stop_codons = {"TAA", "TAG", "TGA"}
@@ -22,7 +26,8 @@ def get_orfs(dna_sequence: str, min_length_aa: int = 50) -> List[Dict]:
     for frame in range(3):
         for i in range(frame, seq_len - 2, 3):
             current_codon = dna_sequence[i:i+3]
-            if current_codon == "ATG":
+            
+            if current_codon in start_codons:
                 for j in range(i, seq_len - 2, 3):
                     reading_codon = dna_sequence[j:j+3]
                     if reading_codon in stop_codons:
