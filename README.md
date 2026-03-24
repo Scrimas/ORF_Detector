@@ -22,11 +22,11 @@ If you are reviewing this code, you might wonder why I manually hardcoded a 64-c
 - **Bi-Directional ORF Detection:** Automatically scans both forward and reverse DNA strands to identify all potential protein-coding regions (ORFs).
 - **Automated Transcription & Translation:** Converts identified DNA sequences into mRNA and provides protein translations in both 1-letter and 3-letter formats.
 - **Biochemical Characterization:** Calculates key physical properties including molecular mass, melting temperature (Tm), isoelectric point (pI), and extinction coefficient.
-- **Detailed Reporting:** Generates structured analysis reports for every identified molecule, mapping ORF coordinates back to the original reference sequence.
+- **Detailed Reporting:** Generates structured analysis reports for every identified molecule, mapping ORF coordinates back to the original reference sequence and presenting protein sequences in NCBI-style chunked blocks with position numbers.
 
 ## Architecture
 
-The directory structure intentionally mirrors the biological flow of information, now enhanced with full type hinting and optimized algorithms:
+The directory structure intentionally mirrors the biological flow of information, now enhanced with modern Python type hinting and optimized algorithms:
 
 ```text
 SeqProfiler/
@@ -38,7 +38,7 @@ SeqProfiler/
     ├── dna_to_rna.py           # Transcription logic
     ├── fasta_to_dna.py         # Sequence extraction & mapping
     ├── main.py                 # Main execution point
-    ├── results_export.py       # Structured report generation
+    ├── results_export.py       # Structured & NCBI-style report generation
     └── sequence_properties.py  # Biochemical property calculations
 ```
 
@@ -59,7 +59,7 @@ python src/main.py
 
 ```bash
 # Specifying custom settings
-python src/main.py --min-length 100 --workers 4 --input ./data_folder --output ./results_folder
+python src/main.py --min-length 100 --workers 4 --input ./data_folder --output ./results_folder 
 ```
 
 3. **Review:** Retrieve detailed analysis reports in your specified output folder (defaults to `results/`).
@@ -72,6 +72,7 @@ python src/main.py --min-length 100 --workers 4 --input ./data_folder --output .
 | `--input` | Path to directory containing `.fasta` files | `data/` |
 | `--output` | Path to directory for analysis reports | `results/` |
 | `--workers` | Number of parallel processes to use | `CPU count` |
+| `--start-codons` | Comma-separated list of alternative start codons (e.g., ATG,CTG,GTG) | `ATG` |
 
 ## License
 

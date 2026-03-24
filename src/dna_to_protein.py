@@ -1,6 +1,6 @@
-from typing import Tuple
+from __future__ import annotations
 
-GENETIC_CODE = {
+GENETIC_CODE: dict[str, str] = {
     "AAA": "Lys", "AAT": "Asn", "AAG": "Lys", "AAC": "Asn",
     "ATA": "Ile", "ATT": "Ile", "ATG": "Met", "ATC": "Ile",
     "AGA": "Arg", "AGT": "Ser", "AGG": "Arg", "AGC": "Ser",
@@ -19,7 +19,7 @@ GENETIC_CODE = {
     "CCA": "Pro", "CCT": "Pro", "CCG": "Pro", "CCC": "Pro"
 }
 
-AA_3_TO_1 = {
+AA_3_TO_1: dict[str, str] = {
     "Lys": "K", "Asn": "N", "Ile": "I", "Met": "M", "Arg": "R", "Ser": "S",
     "Thr": "T", "Ter": "*", "Tyr": "Y", "Leu": "L", "Phe": "F", "Cys": "C",
     "Trp": "W", "Glu": "E", "Asp": "D", "Val": "V", "Gly": "G", "Ala": "A",
@@ -38,7 +38,7 @@ def dna_to_protein(dna_codon: str) -> str:
     """
     return GENETIC_CODE.get(dna_codon.upper(), "X")
 
-def translate_sequence(dna_sequence: str) -> Tuple[str, str]:
+def translate_sequence(dna_sequence: str) -> tuple[str, str]:
     """
     Translates a DNA sequence into protein sequences (both 3-letter and 1-letter formats).
 
@@ -48,12 +48,12 @@ def translate_sequence(dna_sequence: str) -> Tuple[str, str]:
     Returns:
         Tuple[str, str]: A tuple containing (3-letter protein sequence, 1-letter protein sequence).
     """
-    protein_3l = []
-    protein_1l = []
+    protein_3l: list[str] = []
+    protein_1l: list[str] = []
     
     for i in range(0, len(dna_sequence) - 2, 3):
-        codon = dna_sequence[i:i+3]
-        aa_3 = dna_to_protein(codon)
+        codon: str = dna_sequence[i:i+3]
+        aa_3: str = dna_to_protein(codon)
         
         if aa_3 == "Ter":
             break
@@ -61,4 +61,4 @@ def translate_sequence(dna_sequence: str) -> Tuple[str, str]:
         protein_3l.append(aa_3)
         protein_1l.append(AA_3_TO_1.get(aa_3, "?")) 
         
-    return "".join(protein_3l), "".join(protein_1l)
+    return "-".join(protein_3l), "".join(protein_1l)

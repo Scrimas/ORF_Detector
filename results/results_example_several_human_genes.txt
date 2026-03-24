@@ -2,42 +2,40 @@
 SeqProfiler: ORF Analysis Report
 ============================================================
 
-> Sequence ID: NM_000207.3
-Strand: Forward
-Position: 60 - 392 (bp)
-----------------------------------------
-[DNA]  Length: 333 bp | Mass: 102884.18 Da | GC: 64.6% | Tm: 89.4 °C
-[RNA]  Mass: 107355.13 Da
-[PROT] Length: 110 aa | Mass: 11.98 kDa | pI: 5.04 | Ext. Coeff: 17710 M⁻¹·cm⁻¹
+> NM_000207.3 | Strand: Forward | Pos: 60 - 392 bp
+------------------------------------------------------------
+DNA     Length: 333 bp  | Mass: 102,884 Da | GC: 64.6% | Tm: 89.4 °C
+RNA     Mass: 107,355 Da
+Protein Length: 110 aa  | Mass: 11.98 kDa  | pI: 5.04  | Ext.C: 17710 M⁻¹·cm⁻¹
 
-[PROTEIN SEQUENCE (1L)]
-MALWMRLLPLLALLALWGPDPAAAFVNQHLCGSHLVEALYLVCGERGFFYTPKTRREAEDLQVGQVELGGGPGAGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN
+Sequence:
+        1 MALWMRLLPL LALLALWGPD PAAAFVNQHL CGSHLVEALY LVCGERGFFY
+       51 TPKTRREAED LQVGQVELGG GPGAGSLQPL ALEGSLQKRG IVEQCCTSIC
+      101 SLYQLENYCN
 
-............................................................
 
-> Sequence ID: NM_000207.3
-Strand: Reverse
-Position: 206 - 355 (bp)
-----------------------------------------
-[DNA]  Length: 150 bp | Mass: 45961.52 Da | GC: 67.3% | Tm: 88.0 °C
-[RNA]  Mass: 47968.12 Da
-[PROT] Length: 49 aa | Mass: 5.26 kDa | pI: 11.08 | Ext. Coeff: 625 M⁻¹·cm⁻¹
 
-[PROTEIN SEQUENCE (1L)]
-MLVQHCSTMPRFCRDPSRAKGCRLPAPGPPPSSTCPTCRSSASRRVLGV
+> NM_000207.3 | Strand: Reverse | Pos: 206 - 355 bp
+------------------------------------------------------------
+DNA     Length: 150 bp  | Mass: 45,962 Da | GC: 67.3% | Tm: 88.0 °C
+RNA     Mass: 47,968 Da
+Protein Length: 49 aa  | Mass: 5.26 kDa  | pI: 11.08  | Ext.C: 625 M⁻¹·cm⁻¹
 
-............................................................
+Sequence:
+        1 MLVQHCSTMP RFCRDPSRAK GCRLPAPGPP PSSTCPTCRS SASRRVLGV
 
-> Sequence ID: NM_000518.5
-Strand: Forward
-Position: 51 - 494 (bp)
-----------------------------------------
-[DNA]  Length: 444 bp | Mass: 137499.82 Da | GC: 56.1% | Tm: 86.4 °C
-[RNA]  Mass: 143100.47 Da
-[PROT] Length: 147 aa | Mass: 16.00 kDa | pI: 6.87 | Ext. Coeff: 15720 M⁻¹·cm⁻¹
 
-[PROTEIN SEQUENCE (1L)]
-MVHLTPEEKSAVTALWGKVNVDEVGGEALGRLLVVYPWTQRFFESFGDLSTPDAVMGNPKVKAHGKKVLGAFSDGLAHLDNLKGTFATLSELHCDKLHVDPENFRLLGNVLVCVLAHHFGKEFTPPVQAAYQKVVAGVANALAHKYH
 
-............................................................
+> NM_000518.5 | Strand: Forward | Pos: 51 - 494 bp
+------------------------------------------------------------
+DNA     Length: 444 bp  | Mass: 137,500 Da | GC: 56.1% | Tm: 86.4 °C
+RNA     Mass: 143,100 Da
+Protein Length: 147 aa  | Mass: 16.00 kDa  | pI: 6.87  | Ext.C: 15720 M⁻¹·cm⁻¹
+
+Sequence:
+        1 MVHLTPEEKS AVTALWGKVN VDEVGGEALG RLLVVYPWTQ RFFESFGDLS
+       51 TPDAVMGNPK VKAHGKKVLG AFSDGLAHLD NLKGTFATLS ELHCDKLHVD
+      101 PENFRLLGNV LVCVLAHHFG KEFTPPVQAA YQKVVAGVAN ALAHKYH
+
+
 

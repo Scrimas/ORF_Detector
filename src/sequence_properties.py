@@ -1,6 +1,6 @@
-from typing import Dict, Union
+from __future__ import annotations
 
-def calculate_dna_properties(sequence: str) -> Dict[str, Union[int, float]]:
+def calculate_dna_properties(sequence: str) -> dict[str, int | float]:
     """
     Calculates physical properties for a DNA sequence.
     
@@ -10,20 +10,21 @@ def calculate_dna_properties(sequence: str) -> Dict[str, Union[int, float]]:
     Returns:
         Dict: Length, mass (Da), GC%, AT%, and Melting Temp (Tm).
     """
-    length = len(sequence)
+    length: int = len(sequence)
     if length == 0:
         return {"length": 0, "mass_da": 0.0, "gc_prop": 0.0, "at_prop": 0.0, "tm": 0.0}
         
-    a = sequence.count('A')
-    t = sequence.count('T')
-    c = sequence.count('C')
-    g = sequence.count('G')
+    a: int = sequence.count('A')
+    t: int = sequence.count('T')
+    c: int = sequence.count('C')
+    g: int = sequence.count('G')
     
-    gc_prop = ((g + c) / length) * 100
-    at_prop = ((a + t) / length) * 100
+    gc_prop: float = ((g + c) / length) * 100
+    at_prop: float = ((a + t) / length) * 100
     
-    mass = (a * 313.21) + (t * 304.2) + (c * 289.18) + (g * 329.21) - 61.96
+    mass: float = (a * 313.21) + (t * 304.2) + (c * 289.18) + (g * 329.21) - 61.96
     
+    tm: float
     if length < 14:
         tm = (a + t) * 2 + (g + c) * 4
     else:
@@ -31,7 +32,7 @@ def calculate_dna_properties(sequence: str) -> Dict[str, Union[int, float]]:
         
     return {"length": length, "mass_da": mass, "gc_prop": gc_prop, "at_prop": at_prop, "tm": tm}
 
-def calculate_rna_properties(sequence: str) -> Dict[str, Union[int, float]]:
+def calculate_rna_properties(sequence: str) -> dict[str, int | float]:
     """
     Calculates physical properties for an mRNA sequence.
     
@@ -41,19 +42,19 @@ def calculate_rna_properties(sequence: str) -> Dict[str, Union[int, float]]:
     Returns:
         Dict: Length and mass (Da).
     """
-    length = len(sequence)
+    length: int = len(sequence)
     if length == 0:
         return {"length": 0, "mass_da": 0.0}
         
-    a = sequence.count('A')
-    u = sequence.count('U')
-    c = sequence.count('C')
-    g = sequence.count('G')
+    a: int = sequence.count('A')
+    u: int = sequence.count('U')
+    c: int = sequence.count('C')
+    g: int = sequence.count('G')
     
-    mass = (a * 329.21) + (u * 306.15) + (c * 305.18) + (g * 345.21) - 61.96
+    mass: float = (a * 329.21) + (u * 306.15) + (c * 305.18) + (g * 345.21) - 61.96
     return {"length": length, "mass_da": mass}
 
-def calculate_protein_properties(sequence: str) -> Dict[str, float]:
+def calculate_protein_properties(sequence: str) -> dict[str, float]:
     """
     Calculates biochemical properties for a protein sequence.
     
@@ -67,12 +68,12 @@ def calculate_protein_properties(sequence: str) -> Dict[str, float]:
         Dict: Mass (kDa), pI, and Extinction Coefficient.
     """
 
-    seq = sequence.replace('*', '')
-    length = len(seq)
+    seq: str = sequence.replace('*', '')
+    length: int = len(seq)
     if length == 0:
         return {"mass_kda": 0.0, "pi": 0.0, "ext_coeff": 0.0}
         
-    aa_masses = {
+    aa_masses: dict[str, float] = {
         'A': 71.0788, 'R': 156.1875, 'N': 114.1038, 'D': 115.0886,
         'C': 103.1388, 'E': 129.1155, 'Q': 128.1307, 'G': 57.0519,
         'H': 137.1411, 'I': 113.1594, 'L': 113.1594, 'K': 128.1741,
@@ -81,26 +82,26 @@ def calculate_protein_properties(sequence: str) -> Dict[str, float]:
     }
     
     # Molecular Weight calculations
-    mass_da = sum(aa_masses.get(aa, 0.0) for aa in seq) + 18.01524
-    mass_kda = mass_da / 1000.0
+    mass_da: float = sum(aa_masses.get(aa, 0.0) for aa in seq) + 18.01524
+    mass_kda: float = mass_da / 1000.0
     
-    aa_counts = {aa: seq.count(aa) for aa in set(seq)}
+    aa_counts: dict[str, int] = {aa: seq.count(aa) for aa in set(seq)}
     
     # Extinction Coefficient calculations
-    w = aa_counts.get('W', 0)
-    y = aa_counts.get('Y', 0)
-    c = aa_counts.get('C', 0)
-    ext_coeff = (w * 5500) + (y * 1490) + (c * 125)
+    w: int = aa_counts.get('W', 0)
+    y: int = aa_counts.get('Y', 0)
+    c: int = aa_counts.get('C', 0)
+    ext_coeff: float = (w * 5500) + (y * 1490) + (c * 125)
     
     # pI calculation Constants
-    pka_n_term = 9.69
-    pka_c_term = 2.34
-    pka_basic = {'K': 10.53, 'R': 12.48, 'H': 6.00}
-    pka_acidic = {'D': 3.65, 'E': 4.25, 'C': 8.18, 'Y': 10.07}
+    pka_n_term: float = 9.69
+    pka_c_term: float = 2.34
+    pka_basic: dict[str, float] = {'K': 10.53, 'R': 12.48, 'H': 6.00}
+    pka_acidic: dict[str, float] = {'D': 3.65, 'E': 4.25, 'C': 8.18, 'Y': 10.07}
 
     def net_charge(pH: float) -> float:
         """Helper to calculate net charge at a given pH."""
-        charge = 0.0
+        charge: float = 0.0
 
         # Positive charges (N-term + basic AAs)
         charge += 10**(pka_n_term - pH) / (1 + 10**(pka_n_term - pH))
@@ -113,8 +114,9 @@ def calculate_protein_properties(sequence: str) -> Dict[str, float]:
             charge -= aa_counts.get(aa, 0) * (10**(pH - pka) / (1 + 10**(pH - pka)))
         return charge
 
-    low, high = 0.0, 14.0
-    pi = 7.0
+    low: float = 0.0
+    high: float = 14.0
+    pi: float = 7.0
     for _ in range(100):
         pi = (low + high) / 2
         if net_charge(pi) > 0:

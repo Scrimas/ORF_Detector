@@ -1,7 +1,7 @@
+from __future__ import annotations
 import re
-from typing import Dict
 
-def fasta_to_dna(fasta_file: str) -> Dict[str, str]:
+def fasta_to_dna(fasta_file: str) -> dict[str, str]:
     """
     Parses a FASTA file and extracts the DNA sequences.
     
@@ -14,9 +14,9 @@ def fasta_to_dna(fasta_file: str) -> Dict[str, str]:
     Raises:
         ValueError: If a sequence contains non-IUPAC characters.
     """
-    sequences = {}
-    current_id = "Unnamed_Sequence"
-    iupac_pattern = re.compile(r'[^ATGCN]') 
+    sequences: dict[str, list[str]] = {}
+    current_id: str = "Unnamed_Sequence"
+    iupac_pattern: re.Pattern = re.compile(r'[^ATGCN]') 
     
     with open(fasta_file, 'r', encoding='utf-8') as f:
         for line in f:
@@ -29,13 +29,14 @@ def fasta_to_dna(fasta_file: str) -> Dict[str, str]:
             else:
                 if current_id not in sequences:
                     sequences[current_id] = []
-                cleaned_line = line.upper()
+                cleaned_line: str = line.upper()
 
                 if iupac_pattern.search(cleaned_line):
-                    invalid_chars = set(iupac_pattern.findall(cleaned_line))
+                    invalid_chars: set[str] = set(iupac_pattern.findall(cleaned_line))
                     raise ValueError(f"Sequence '{current_id}' contains invalid non-IUPAC characters: {invalid_chars}")
                 sequences[current_id].append(cleaned_line)
                 
-    for seq_id in sequences:
-        sequences[seq_id] = "".join(sequences[seq_id])
-    return sequences
+    result: dict[str, str] = {}
+    for seq_id, seq_parts in sequences.items():
+        result[seq_id] = "".join(seq_parts)
+    return result
