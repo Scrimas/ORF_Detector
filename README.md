@@ -16,6 +16,14 @@ If you are reviewing this code, you might wonder why I manually hardcoded a 64-c
 
 **This is an intentional and pedagogical constraint.** As a 3rd-year biology student in Grenoble, my goal was to deeply understand and computationally replicate the mechanical logic of the ribosomal machinery and the mathematics behind biochemical properties. Relying on "black box" libraries would defeat the purpose of the exercise. Every algorithmic choice was written explicitly to prove a granular understanding of genomic translation and molecular biophysics.
 
+## Requirements & Compatibility
+
+- **Python:** Python 3.14+
+- **Operating Systems:** 
+    - **Windows 11:** Tested
+    - **Linux:** Tested
+    - **macOS:** Untested but should work fine as the script uses standard cross-platform libraries
+
 ## Core Features
 
 - **Batch Sequence Analysis:** Simultaneously processes multiple FASTA files using parallel computing to handle large-scale genomic data efficiently.
