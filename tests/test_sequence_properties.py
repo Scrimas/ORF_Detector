@@ -24,7 +24,7 @@ class TestDNAProperties:
     def test_short_dna_mass(self):
         user_props = calculate_dna_properties(SHORT_DNA)
         bio_mass = molecular_weight(SHORT_DNA, "DNA", circular=False, double_stranded=False)
-        assert user_props["mass_da"] == pytest.approx(bio_mass - 79.4, rel=1e-3)
+        assert user_props["mass_da"] == pytest.approx(bio_mass - 79.98, rel=1e-3)
 
     def test_short_dna_gc_content(self):
         user_props = calculate_dna_properties(SHORT_DNA)
@@ -39,7 +39,7 @@ class TestDNAProperties:
     def test_long_dna_mass(self):
         user_props = calculate_dna_properties(LONG_DNA)
         bio_mass = molecular_weight(LONG_DNA, "DNA", circular=False, double_stranded=False)
-        assert user_props["mass_da"] == pytest.approx(bio_mass - 79.4, rel=1e-3)
+        assert user_props["mass_da"] == pytest.approx(bio_mass - 79.98, rel=1e-3)
 
     def test_long_dna_gc_content(self):
         user_props = calculate_dna_properties(LONG_DNA)
@@ -58,12 +58,12 @@ class TestRNAProperties:
     def test_short_rna_mass(self):
         user_props = calculate_rna_properties(SHORT_RNA)
         bio_mass = molecular_weight(SHORT_RNA, "RNA", circular=False, double_stranded=False)
-        assert user_props["mass_da"] == pytest.approx(bio_mass - 79.4, rel=1e-3)
+        assert user_props["mass_da"] == pytest.approx(bio_mass - 79.98, rel=1e-3)
 
     def test_long_rna_mass(self):
         user_props = calculate_rna_properties(LONG_RNA)
         bio_mass = molecular_weight(LONG_RNA, "RNA", circular=False, double_stranded=False)
-        assert user_props["mass_da"] == pytest.approx(bio_mass - 79.4, rel=1e-3)
+        assert user_props["mass_da"] == pytest.approx(bio_mass - 79.98, rel=1e-3)
 
 
 class TestProteinProperties:
