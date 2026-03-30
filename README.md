@@ -27,7 +27,7 @@ And because any custom-built bioinformatics tool requires rigorous verifications
 While the outputs are highly accurate, there are a few intentional, well-documented biochemical divergences based on different structural assumptions :
 
 - **Sequence Mass:** Biopython's default behavior assumes a 5'-phosphate group while SeqProfiler's algorithm effectively assumes a 5'-hydroxyl group. 
-This results in a consistent ~79.98 Da difference.
+This results in a consistent 79.98 Da difference.
 
 - **Isoelectric Point:** Computational pI depends heavily on the dataset of pKa used. Biopython defaults to the Bjellqvist dataset whereas SeqProfiler utilizes the Lehninger pKa tables.
 This results in slight increasing pI variations the longer the sequence is.
