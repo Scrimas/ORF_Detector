@@ -10,13 +10,13 @@
 
 If you are reviewing this code, you might wonder why I manually hardcoded a 64-codon dictionary, built custom string-slicing loops or wrote binary search algorithms to calculate biochemical properties instead of simply importing `Bio.SeqUtils` from Biopython.
 
-**This is intentional:** As a 3rd-year post-bac biology student in Grenoble, my goal was to deeply understand, but more importantly, to transcribe into code the mechanical logic of biology and the mathematics behind the biochemical properties. Relying on "black box" libraries would defeat the entire purpose of the exercise. 
+**This is intentional:** As a 3rd-year B.Sc. biology student in Grenoble, my goal was to deeply understand, but more importantly, to transcribe into code the mechanical logic of biology and the mathematics behind the biochemical properties. Relying on "black box" libraries would defeat the entire purpose of the exercise. 
 
 ## Core Features
 
 - **Bi-Directional ORFs Detection:** Scans both forward and reverse DNA strands to identify all potential protein-coding regions.
 - **Transcription & Translation:** Transcribes and translates identified ORFs into 1-letter protein sequences.
-- **Biochemical calculations:** Calculates key physical properties (Mass,GC percentage, Tm, pI and Extinction Coefficient).
+- **Biochemical calculations:** Calculates key physical properties (Mass, GC percentage, Tm, pI and Extinction Coefficient).
 - **Detailed Reports:** Generates structured reports for every ORF, maps coordinates back to the original sequence and presents 1-letter protein sequences in a NCBI-style chunked blocks with position numbers.
 
 ## Calculations accuracy (SeqProfiler vs. Biopython)
