@@ -4,7 +4,7 @@
 
 ## Overview
 
-**SeqProfiler** is a purely foundational, from-scratch bioinformatics tool written in Python. It parses FASTA files, identifies Open Reading Frames (ORFs), translates them into amino acids sequences, and calculates key biochemical properties (Mass, GC percentage, Tm, pI and Extinction Coefficient) for all identified ORFs.
+**SeqProfiler** is a purely foundational, from-scratch bioinformatics tool written in Python. It parses FASTA files, identifies Open Reading Frames (ORFs) in DNA/RNA, translates them into amino acids sequences, and calculates key biochemical properties (Mass, GC percentage, Tm, pI and Extinction Coefficient). It also supports direct analysis of protein sequences.
 
 ## The "Vanilla Python" Philosophy
 
@@ -14,10 +14,12 @@ If you are reviewing this code, you might wonder why I manually hardcoded a 64-c
 
 ## Core Features
 
-- **Bi-Directional ORFs Detection:** Scans both forward and reverse DNA strands to identify all potential protein-coding regions.
+- **Bi-Directional ORFs Detection:** Scans both forward and reverse DNA/RNA strands to identify all potential protein-coding regions.
 - **Transcription & Translation:** Transcribes and translates identified ORFs into 1-letter protein sequences.
+- **Protein Analysis:** Direct support for analyzing protein sequences (e.g., from NCBI).
 - **Biochemical calculations:** Calculates key physical properties (Mass, GC percentage, Tm, pI and Extinction Coefficient).
-- **Detailed Reports:** Generates structured reports for every ORF, maps coordinates back to the original sequence and presents 1-letter protein sequences in a NCBI-style chunked blocks with position numbers.
+- **NCBI Integration:** Fetch and analyze DNA, RNA, or Protein sequences directly using NCBI accession IDs.
+- **Detailed Reports:** Generates structured reports for every ORF or Protein, maps coordinates and presents 1-letter protein sequences in a NCBI-style chunked blocks.
 
 ## Calculations accuracy (SeqProfiler vs. Biopython)
 
@@ -40,6 +42,7 @@ This results in increasing variations in extinction coefficient the more cystein
 ```bash
 git clone https://github.com/Scrimas/SeqProfiler
 cd SeqProfiler
+pip install requests
 ```
 
 ```bash
@@ -61,15 +64,29 @@ python src/main.py --min-length 100 --workers 4 --input ./data_folder --output .
 | `--output` | Path to directory for analysis reports | `results/` |
 | `--workers` | Number of parallel processes to use | `CPU count` |
 | `--start-codons` | Comma-separated list of alternative start codons (e.g., ATG,CTG,GTG) | `ATG` |
+| `--ncbi` | Comma-separated list of NCBI accession IDs to fetch and analyze | `None` |
+
+### Examples
+
+```bash
+# Analyze local files
+python src/main.py --input ./my_data
+
+# Analyze sequences from NCBI
+python src/main.py --ncbi NM_001301717,NC_000913
+
+# Mix local and NCBI sequences
+python src/main.py --input ./data --ncbi NM_001301717
+```
 
 ### Running the Tests
 
 While the test results are already included on this repository (see [tests/pytest_results.txt](https://github.com/Scrimas/SeqProfiler/blob/main/tests/pytest_results.txt)), you can verify the algorithms on your own machine. 
 
-For this, simply install `pytest` and `biopython`, then run the test suite from the root directory:
+For this, simply install `pytest`, `biopython` and `requests`, then run the test suite from the root directory:
 
 ```bash
-pip install pytest biopython
+pip install pytest biopython requests
 pytest -v
 ```
 
@@ -87,6 +104,7 @@ SeqProfiler/
 │   ├── dna_to_rna.py           # Transcription logic
 │   ├── fasta_to_dna.py         # Sequence extraction
 │   ├── main.py                 
+│   ├── ncbi_fetch.py           # NCBI E-utilities fetching logic
 │   ├── results_export.py       # Report generation
 │   └── sequence_properties.py  # Biochemical properties calculations
 ├── tests/                      # Pytest folder

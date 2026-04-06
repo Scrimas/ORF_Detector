@@ -23,6 +23,25 @@ def format_sequence_ncbi(sequence: str, line_length: int = 50, chunk_size: int =
         
     return "\n".join(formatted_lines)
 
+def export_protein_to_txt(protein_data: dict[str, Any], output_file: str) -> None:
+    """
+    Exports Protein analysis results to a structured text file.
+    """
+    with open(output_file, 'w', encoding='utf-8') as f:
+        f.write("=" * 60 + "\n")
+        f.write("SeqProfiler: Protein Analysis Report\n")
+        f.write("=" * 60 + "\n\n")
+        
+        f.write(f"> {protein_data['sequence_id']}\n")
+        f.write("-" * 60 + "\n")
+        
+        pp: dict[str, Any] = protein_data['prot_props']
+        f.write(f"Protein Length: {protein_data['length']} aa  | Mass: {pp['mass_kda']:.2f} kDa  | pI: {pp['pi']:.2f}  | Ext.C: {pp['ext_coeff']} M⁻¹·cm⁻¹\n\n")
+        
+        f.write("Sequence:\n")
+        formatted_seq: str = format_sequence_ncbi(protein_data['protein_1l'])
+        f.write(f"{formatted_seq}\n")
+
 def export_orfs_to_txt(orfs: list[dict[str, Any]], output_file: str) -> None:
     """
     Exports ORF analysis results to a structured text file in Classic Bioinformatics format.
