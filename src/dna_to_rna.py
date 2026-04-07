@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+
 def dna_to_rna(dna_sequence: str) -> str:
     """
     Transcribes a DNA sequence into an mRNA sequence by replacing Thymine (T) with Uracil (U).

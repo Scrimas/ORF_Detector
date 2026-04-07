@@ -10,7 +10,7 @@
 
 If you are reviewing this code, you might wonder why I manually hardcoded a 64-codon dictionary, built custom string-slicing loops or wrote binary search algorithms to calculate biochemical properties instead of simply importing `Bio.SeqUtils` from Biopython.
 
-**This is intentional:** As a 3rd-year B.Sc. biology student in Grenoble, my goal was to deeply understand, but more importantly, to transcribe into code the mechanical logic of biology and the mathematics behind the biochemical properties. Relying on "black box" libraries would defeat the entire purpose of the exercise. 
+**This is intentional:** As a 3rd-year B.Sc. biology student in Grenoble, my goal was to deeply understand, but more importantly, to transcribe into code the mechanical logic of biology and the mathematics behind the biochemical properties. Relying on "black box" libraries would defeat the entire purpose of the exercise.
 
 ## Core Features
 
@@ -28,14 +28,14 @@ And because any custom-built bioinformatics tool requires rigorous verifications
 
 While the outputs are highly accurate, there are a few intentional, well-documented biochemical divergences based on different structural assumptions :
 
-- **Sequence Mass:** Biopython's default behavior assumes a 5'-phosphate group while SeqProfiler's algorithm effectively assumes a 5'-hydroxyl group. 
-This results in a consistent 79.98 Da difference.
+- **Sequence Mass:** Biopython's default behavior assumes a 5'-phosphate group while SeqProfiler's algorithm effectively assumes a 5'-hydroxyl group.
+  This results in a consistent 79.98 Da difference.
 
 - **Isoelectric Point:** Computational pI depends heavily on the dataset of pKa used. Biopython defaults to the Bjellqvist dataset whereas SeqProfiler utilizes the Lehninger pKa tables.
-This results in slight increasing pI variations the longer the sequence is.
+  This results in slight increasing pI variations the longer the sequence is.
 
 - **Extinction Coefficient:** Biopython defaults to calculating an "oxidized" state, meaning it only counts cysteines that form disulfide bonds, adding a coefficient of 125 M⁻¹·cm⁻¹ per pair of cysteines. SeqProfiler takes a generalized approach, adding a coefficient of 125 M⁻¹·cm⁻¹ for every individual cysteine present in the sequence.
-This results in increasing variations in extinction coefficient the more cysteines the sequence contains.
+  This results in increasing variations in extinction coefficient the more cysteines the sequence contains.
 
 ## Quick Start (Installation & Usage)
 
@@ -52,14 +52,14 @@ python src/main.py
 
 ### Available Options
 
-| Argument | Description | Default |
-| :--- | :--- | :--- |
-| `--min-length` | Minimum ORF size in amino acids | `50` |
-| `--input` | Path to directory containing `.fasta` files | `data/` |
-| `--output` | Path to directory for analysis reports | `results/` |
-| `--workers` | Number of parallel processes to use | `CPU count` |
-| `--start-codons` | Comma-separated list of alternative start codons (e.g., ATG,CTG,GTG) | `ATG` |
-| `--ncbi` | Comma-separated list of NCBI accession IDs to fetch and analyze | `None` |
+| Argument         | Description                                                          | Default     |
+| :--------------- | :------------------------------------------------------------------- | :---------- |
+| `--min-length`   | Minimum ORF size in amino acids                                      | `50`        |
+| `--input`        | Path to directory containing `.fasta` files                          | `data/`     |
+| `--output`       | Path to directory for analysis reports                               | `results/`  |
+| `--workers`      | Number of parallel processes to use                                  | `CPU count` |
+| `--start-codons` | Comma-separated list of alternative start codons (e.g., ATG,CTG,GTG) | `ATG`       |
+| `--ncbi`         | Comma-separated list of NCBI accession IDs to fetch and analyze      | `None`      |
 
 ### Examples
 
@@ -76,7 +76,7 @@ python src/main.py --input ./data --ncbi NM_001301717
 
 ### Running the Tests
 
-While the test results are already included on this repository (see [tests/pytest_results.txt](https://github.com/Scrimas/SeqProfiler/blob/main/tests/pytest_results.txt)), you can verify the algorithms on your own machine. 
+While the test results are already included on this repository (see [tests/pytest_results.txt](https://github.com/Scrimas/SeqProfiler/blob/main/tests/pytest_results.txt)), you can verify the algorithms on your own machine.
 
 For this, simply install `pytest` and `biopython`, then run the test suite from the root directory:
 
@@ -98,7 +98,7 @@ SeqProfiler/
 │   ├── dna_to_protein.py       # Translation logic
 │   ├── dna_to_rna.py           # Transcription logic
 │   ├── fasta_to_dna.py         # Sequence extraction
-│   ├── main.py                 
+│   ├── main.py
 │   ├── ncbi_fetch.py           # NCBI E-utilities fetching logic
 │   ├── results_export.py       # Report generation
 │   └── sequence_properties.py  # Biochemical properties calculations
@@ -110,10 +110,10 @@ SeqProfiler/
 ## Requirements & Compatibility
 
 - **Python:** Python 3.14+
-- **Operating Systems:** 
-    - **Windows 11:** Tested
-    - **Linux:** Tested
-    - **macOS:** Untested but should work fine as the script uses standard cross-platform libraries
+- **Operating Systems:**
+  - **Windows 11:** Tested
+  - **Linux:** Tested
+  - **macOS:** Untested but should work fine as the script uses standard cross-platform libraries
 
 ## Project Status
 
