@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from typing import Any
 
 
@@ -69,7 +70,6 @@ def export_orfs_to_txt(orfs: list[dict[str, Any]], output_file: str) -> None:
             return
 
         for orf in orfs:
-
             # Header
             f.write(
                 f"> {orf['sequence_id']} | Strand: {orf['strand']} | Pos: {orf['start_position']} - {orf['end_position']} bp\n"

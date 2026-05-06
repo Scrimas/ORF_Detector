@@ -1,6 +1,8 @@
 from __future__ import annotations
-import requests
+
 import sys
+
+import requests
 
 
 def fetch_ncbi_sequence(accession_id: str) -> str:

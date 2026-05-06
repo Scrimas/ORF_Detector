@@ -1,20 +1,21 @@
 from __future__ import annotations
+
 import argparse
 import sys
-from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from pathlib import Path
 from typing import Any
 
+from dna_to_codon import get_orfs
+from dna_to_protein import translate_sequence
 from dna_to_rna import dna_to_rna
 from fasta_to_dna import fasta_to_dna, parse_fasta_string
 from ncbi_fetch import fetch_ncbi_sequence
-from dna_to_codon import get_orfs
-from dna_to_protein import translate_sequence
 from results_export import export_orfs_to_txt, export_protein_to_txt
 from sequence_properties import (
     calculate_dna_properties,
-    calculate_rna_properties,
     calculate_protein_properties,
+    calculate_rna_properties,
 )
 
 
@@ -97,7 +98,6 @@ def process_sequences(
                 reverse_complement, min_length_aa=min_length, start_codons=start_codons
             )
             for orf in negative_orfs:
-
                 true_start: int = seq_len - orf["end_position"] + 1
                 true_end: int = seq_len - orf["start_position"] + 1
 
