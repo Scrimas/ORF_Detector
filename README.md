@@ -66,10 +66,14 @@ python src/main.py
 ```bash
 # Analyze local files
 python src/main.py --input ./my_data
+```
 
+```bash
 # Analyze sequences from NCBI
 python src/main.py --ncbi NM_001301717,NC_000913
+```
 
+```bash
 # Mix local and NCBI sequences
 python src/main.py --input ./data --ncbi NM_001301717
 ```
