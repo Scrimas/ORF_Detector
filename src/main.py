@@ -6,20 +6,20 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
 
-from dna_to_codon import get_orfs
+from dna_to_codon import find_open_reading_frames
 from dna_to_protein import translate_sequence
-from dna_to_rna import dna_to_rna
-from fasta_to_dna import fasta_to_dna, parse_fasta_string
+from dna_to_rna import transcribe_dna_to_rna
+from fasta_to_dna import parse_fasta_content, read_fasta_file
 from ncbi_fetch import fetch_ncbi_sequence
-from results_export import export_orfs_to_txt, export_protein_to_txt
+from results_export import export_orf_report, export_protein_report
 from sequence_properties import (
-    calculate_dna_properties,
-    calculate_protein_properties,
-    calculate_rna_properties,
+    compute_dna_properties,
+    compute_protein_properties,
+    compute_rna_properties,
 )
 
 
-def print_progress_bar(
+def display_progress_bar(
     iteration: int,
     total: int,
     prefix: str = "",
@@ -27,9 +27,6 @@ def print_progress_bar(
     length: int = 50,
     fill: str = "█",
 ) -> None:
-    """
-    Call in a loop to create terminal progress bar
-    """
     percent: str = ("{0:.1f}").format(100 * (iteration / float(total)))
     filled_length: int = int(length * iteration // total)
     bar: str = fill * filled_length + "-" * (length - filled_length)
@@ -40,244 +37,289 @@ def print_progress_bar(
 
 
 def process_sequences(
-    sequences_dict: dict[str, str],
-    source_name: str,
-    min_length: int,
-    start_codons: set[str],
-    results_dir: Path,
+    id_to_sequence_map: dict[str, str],
+    dataset_name: str,
+    min_orf_length: int,
+    allowed_start_codons: set[str],
+    output_directory: Path,
+    forced_sequence_type: str | None = None,
 ) -> str:
-    """
-    Processes a dictionary of sequences: identifies ORFs or calculates protein properties.
-    """
     try:
-        all_file_orfs: list[dict[str, int | str | Any]] = []
+        all_orfs: list[dict[str, int | str | Any]] = []
+        all_proteins: list[dict[str, Any]] = []
         is_protein_batch = False
 
-        for seq_id, main_sequence in sequences_dict.items():
-            nucleotides = set("ATGCNU")
-            is_protein = any(char not in nucleotides for char in main_sequence.upper())
+        for sequence_id, raw_sequence in id_to_sequence_map.items():
+            normalized_sequence = raw_sequence.upper()
 
-            if is_protein:
+            protein_specific_amino_acids = set("EFILPQZJ")
+            has_protein_specific_residues = any(char in protein_specific_amino_acids for char in normalized_sequence)
+
+            valid_nucleotides = set("ATGCNURYSWKMBDHV-")
+            non_nucleotide_fraction = sum(1 for char in normalized_sequence if char not in valid_nucleotides) / len(normalized_sequence) if len(normalized_sequence) > 0 else 1.0
+
+            if forced_sequence_type == "protein":
+                is_protein_sequence = True
+            elif forced_sequence_type in ("genomic", "transcript"):
+                is_protein_sequence = False
+            else:
+                is_protein_sequence = has_protein_specific_residues or (non_nucleotide_fraction > 0.1)
+
+            if is_protein_sequence:
                 is_protein_batch = True
-                prot_props = calculate_protein_properties(main_sequence)
-                protein_data = {
-                    "sequence_id": seq_id,
-                    "length": len(main_sequence),
-                    "prot_props": prot_props,
-                    "protein_1l": main_sequence,
+                protein_properties = compute_protein_properties(raw_sequence)
+                protein_record = {
+                    "sequence_id": sequence_id,
+                    "length": len(raw_sequence.replace("-", "").replace("*", "")),
+                    "prot_props": protein_properties,
+                    "protein_1l": raw_sequence,
                 }
-                output_path: Path = results_dir / f"results_{source_name}.txt"
-                export_protein_to_txt(protein_data, str(output_path))
+                all_proteins.append(protein_record)
                 continue
 
-            seq_len: int = len(main_sequence)
+            sequence_length: int = len(raw_sequence)
 
-            # Forward Strand Processing
-            positive_orfs: list[dict[str, int | str | Any]] = get_orfs(
-                main_sequence, min_length_aa=min_length, start_codons=start_codons
+            transcript_prefixes = ("NM_", "NR_", "XM_", "XR_")
+
+            if forced_sequence_type == "transcript":
+                is_transcript_sequence = True
+            elif forced_sequence_type == "genomic":
+                is_transcript_sequence = False
+            else:
+                is_transcript_sequence = sequence_id.startswith(transcript_prefixes)
+
+            forward_orfs: list[dict[str, int | str | Any]] = find_open_reading_frames(
+                raw_sequence, min_orf_length=min_orf_length, allowed_start_codons=allowed_start_codons
             )
-            for orf in positive_orfs:
+            for orf in forward_orfs:
                 orf.update(
                     {
-                        "sequence_id": seq_id,
+                        "sequence_id": sequence_id,
                         "strand": "Forward",
-                        "rna": dna_to_rna(orf["sequence"]),
+                        "rna": transcribe_dna_to_rna(orf["sequence"]),
                     }
                 )
-                p3, p1 = translate_sequence(orf["sequence"])
-                orf["protein_3l"], orf["protein_1l"] = p3, p1
-                orf["dna_props"] = calculate_dna_properties(orf["sequence"])
-                orf["rna_props"] = calculate_rna_properties(orf["rna"])
-                orf["prot_props"] = calculate_protein_properties(p1)
+                protein_3letter, protein_1letter = translate_sequence(orf["sequence"], is_open_reading_frame=True)
+                orf["protein_3l"], orf["protein_1l"] = protein_3letter, protein_1letter
+                orf["dna_props"] = compute_dna_properties(orf["sequence"])
+                orf["rna_props"] = compute_rna_properties(orf["rna"])
+                orf["prot_props"] = compute_protein_properties(protein_1letter)
 
-            # Reverse Strand Processing
-            reverse_complement: str = main_sequence.translate(
-                str.maketrans("ATCG", "TAGC")
-            )[::-1]
-            negative_orfs: list[dict[str, Any]] = get_orfs(
-                reverse_complement, min_length_aa=min_length, start_codons=start_codons
-            )
-            for orf in negative_orfs:
-                true_start: int = seq_len - orf["end_position"] + 1
-                true_end: int = seq_len - orf["start_position"] + 1
-
-                orf.update(
-                    {
-                        "sequence_id": seq_id,
-                        "strand": "Reverse",
-                        "start_position": true_start,
-                        "end_position": true_end,
-                        "rna": dna_to_rna(orf["sequence"]),
-                    }
+            if not is_transcript_sequence:
+                reverse_complement: str = normalized_sequence.translate(
+                    str.maketrans("ATCGU", "TAGCA")
+                )[::-1]
+                reverse_orfs: list[dict[str, Any]] = find_open_reading_frames(
+                    reverse_complement, min_orf_length=min_orf_length, allowed_start_codons=allowed_start_codons
                 )
-                p3, p1 = translate_sequence(orf["sequence"])
-                orf["protein_3l"], orf["protein_1l"] = p3, p1
-                orf["dna_props"] = calculate_dna_properties(orf["sequence"])
-                orf["rna_props"] = calculate_rna_properties(orf["rna"])
-                orf["prot_props"] = calculate_protein_properties(p1)
+                for orf in reverse_orfs:
+                    corrected_start_position: int = sequence_length - orf["start_position"] + 1
+                    corrected_end_position: int = sequence_length - orf["end_position"] + 1
 
-            all_file_orfs.extend(positive_orfs + negative_orfs)
+                    orf.update(
+                        {
+                            "sequence_id": sequence_id,
+                            "strand": "Reverse",
+                            "start_position": corrected_start_position,
+                            "end_position": corrected_end_position,
+                            "rna": transcribe_dna_to_rna(orf["sequence"]),
+                        }
+                    )
+                    protein_3letter, protein_1letter = translate_sequence(orf["sequence"], is_open_reading_frame=True)
+                    orf["protein_3l"], orf["protein_1l"] = protein_3letter, protein_1letter
+                    orf["dna_props"] = compute_dna_properties(orf["sequence"])
+                    orf["rna_props"] = compute_rna_properties(orf["rna"])
+                    orf["prot_props"] = compute_protein_properties(protein_1letter)
+
+                all_orfs.extend(forward_orfs + reverse_orfs)
+            else:
+                all_orfs.extend(forward_orfs)
 
         if is_protein_batch:
-            return f"Successfully processed protein {source_name}"
+            report_file_path: Path = output_directory / f"results_{dataset_name}.txt"
+            export_protein_report(all_proteins, str(report_file_path))
+            return f"Successfully processed protein batch {dataset_name}"
 
-        all_file_orfs = sorted(
-            all_file_orfs, key=lambda x: (x["sequence_id"], x["start_position"])
+        all_orfs = sorted(
+            all_orfs, key=lambda x: (x["sequence_id"], x["start_position"])
         )
-        output_path: Path = results_dir / f"results_{source_name}.txt"
-        export_orfs_to_txt(all_file_orfs, str(output_path))
+        report_file_path: Path = output_directory / f"results_{dataset_name}.txt"
+        export_orf_report(all_orfs, str(report_file_path))
 
-        return f"Successfully processed {source_name}"
+        return f"Successfully processed {dataset_name}"
     except Exception as e:
-        return f"Error processing {source_name}: {str(e)}"
+        return f"Error processing {dataset_name}: {str(e)}"
 
 
 def process_single_file(
-    file_path: Path, min_length: int, start_codons: set[str], results_dir: Path
+    input_file_path: Path,
+    min_orf_length: int,
+    allowed_start_codons: set[str],
+    output_directory: Path,
+    forced_sequence_type: str | None = None,
 ) -> str:
-    """
-    Processes a single FASTA file.
-    """
     try:
-        sequences_dict: dict[str, str] = fasta_to_dna(str(file_path))
+        id_to_sequence_map: dict[str, str] = read_fasta_file(str(input_file_path))
         return process_sequences(
-            sequences_dict, file_path.stem, min_length, start_codons, results_dir
+            id_to_sequence_map,
+            input_file_path.stem,
+            min_orf_length,
+            allowed_start_codons,
+            output_directory,
+            forced_sequence_type,
         )
     except Exception as e:
-        return f"Error reading {file_path.name}: {str(e)}"
+        return f"Error reading {input_file_path.name}: {str(e)}"
 
 
 def process_ncbi_id(
-    ncbi_id: str, min_length: int, start_codons: set[str], results_dir: Path
+    accession_number: str,
+    min_orf_length: int,
+    allowed_start_codons: set[str],
+    output_directory: Path,
+    forced_sequence_type: str | None = None,
 ) -> str:
-    """
-    Fetches and processes a single NCBI ID.
-    """
     try:
-        fasta_content = fetch_ncbi_sequence(ncbi_id)
-        sequences_dict = parse_fasta_string(fasta_content)
+        fetched_fasta = fetch_ncbi_sequence(accession_number)
+        id_to_sequence_map = parse_fasta_content(fetched_fasta)
         return process_sequences(
-            sequences_dict, ncbi_id, min_length, start_codons, results_dir
+            id_to_sequence_map,
+            accession_number,
+            min_orf_length,
+            allowed_start_codons,
+            output_directory,
+            forced_sequence_type,
         )
     except Exception as e:
-        return f"Error processing NCBI ID {ncbi_id}: {str(e)}"
+        return f"Error processing NCBI ID {accession_number}: {str(e)}"
 
 
 def main() -> None:
-    base_path: Path = Path(__file__).resolve().parent.parent
+    project_root: Path = Path(__file__).resolve().parent.parent
 
-    parser: argparse.ArgumentParser = argparse.ArgumentParser(
+    arg_parser: argparse.ArgumentParser = argparse.ArgumentParser(
         description="SeqProfiler: High-performance DNA analysis tool."
     )
-    parser.add_argument(
+    arg_parser.add_argument(
         "--min-length",
         type=int,
         default=50,
         help="Minimum ORF size (in amino acids) [default: 50]",
     )
-    parser.add_argument(
+    arg_parser.add_argument(
         "--input",
         type=str,
         default=None,
         help="Path to input directory [default: data/]",
     )
-    parser.add_argument(
+    arg_parser.add_argument(
         "--output",
         type=str,
         default=None,
         help="Path to output directory [default: results/]",
     )
-    parser.add_argument(
+    arg_parser.add_argument(
         "--workers",
         type=int,
         default=None,
         help="Number of parallel workers [default: CPU count]",
     )
-    parser.add_argument(
+    arg_parser.add_argument(
         "--start-codons",
         type=str,
         default="ATG",
         help="Comma-separated list of alternative start codons (e.g., ATG,CTG,GTG) [default: ATG]",
     )
-    parser.add_argument(
+    arg_parser.add_argument(
         "--ncbi",
         type=str,
         default=None,
         help="Comma-separated list of NCBI accession IDs to fetch and analyze",
     )
-    args: argparse.Namespace = parser.parse_args()
+    arg_parser.add_argument(
+        "--seq-type",
+        type=str,
+        choices=["auto", "genomic", "transcript", "protein"],
+        default="auto",
+        help="Force sequence type. 'genomic' (dsDNA, search both strands), 'transcript' (mRNA/cDNA, search forward only), or 'protein'. [default: auto]",
+    )
+    parsed_args: argparse.Namespace = arg_parser.parse_args()
 
-    start_codons_set: set[str] = {
-        codon.strip().upper() for codon in args.start_codons.split(",") if codon.strip()
+    allowed_start_codons: set[str] = {
+        codon.strip().upper() for codon in parsed_args.start_codons.split(",") if codon.strip()
     }
+
+    forced_sequence_type = parsed_args.seq_type if parsed_args.seq_type != "auto" else None
 
     print("\n" + "=" * 50)
     print(" " * 19 + "SeqProfiler")
     print("=" * 50 + "\n")
 
-    use_default_data = args.input is None and args.ncbi is None
-    data_dir: Path | None = None
-    if args.input:
-        data_dir = Path(args.input).resolve()
-    elif use_default_data:
-        data_dir = base_path / "data"
+    is_using_default_data = parsed_args.input is None and parsed_args.ncbi is None
+    input_directory: Path | None = None
+    if parsed_args.input:
+        input_directory = Path(parsed_args.input).resolve()
+    elif is_using_default_data:
+        input_directory = project_root / "data"
 
-    results_dir: Path = (
-        Path(args.output).resolve() if args.output else base_path / "results"
+    output_directory: Path = (
+        Path(parsed_args.output).resolve() if parsed_args.output else project_root / "results"
     )
-    results_dir.mkdir(parents=True, exist_ok=True)
+    output_directory.mkdir(parents=True, exist_ok=True)
 
-    tasks = []
+    analysis_tasks = []
 
-    if data_dir and data_dir.exists():
-        fasta_files: list[Path] = list(data_dir.glob("*.fasta"))
-        for f in fasta_files:
-            tasks.append(("file", f))
-    elif data_dir and not data_dir.exists():
-        print(f"Error: Input directory '{data_dir}' does not exist.")
+    if input_directory and input_directory.exists():
+        input_fasta_files: list[Path] = list(input_directory.glob("*.fasta"))
+        for f in input_fasta_files:
+            analysis_tasks.append(("file", f))
+    elif input_directory and not input_directory.exists():
+        print(f"Error: Input directory '{input_directory}' does not exist.")
         sys.exit(1)
 
-    if args.ncbi:
-        ncbi_ids = [nid.strip() for nid in args.ncbi.split(",") if nid.strip()]
-        for nid in ncbi_ids:
-            tasks.append(("ncbi", nid))
+    if parsed_args.ncbi:
+        accession_numbers = [nid.strip() for nid in parsed_args.ncbi.split(",") if nid.strip()]
+        for nid in accession_numbers:
+            analysis_tasks.append(("ncbi", nid))
 
-    if not tasks:
+    if not analysis_tasks:
         print("No input files or NCBI IDs provided. Exiting.")
         return
 
-    input_source = "None"
-    if args.input and args.ncbi:
-        input_source = f"Files ({data_dir}) + NCBI"
-    elif args.input:
-        input_source = f"Files ({data_dir})"
-    elif args.ncbi:
-        input_source = "NCBI"
-    elif use_default_data:
-        input_source = f"Default Files ({data_dir})"
+    source_description = "None"
+    if parsed_args.input and parsed_args.ncbi:
+        source_description = f"Files ({input_directory}) + NCBI"
+    elif parsed_args.input:
+        source_description = f"Files ({input_directory})"
+    elif parsed_args.ncbi:
+        source_description = "NCBI"
+    elif is_using_default_data:
+        source_description = f"Default Files ({input_directory})"
 
     print(f"[*] Configuration:")
-    print(f"    - Input:        {input_source}")
-    print(f"    - Output:       {results_dir}")
-    print(f"    - Start Codons: {', '.join(start_codons_set)}")
-    print(f"    - Min AA:       {args.min_length}")
-    print(f"    - Total tasks:  {len(tasks)}\n")
+    print(f"    - Input:        {source_description}")
+    print(f"    - Output:       {output_directory}")
+    print(f"    - Seq Type:     {parsed_args.seq_type}")
+    print(f"    - Start Codons: {', '.join(allowed_start_codons)}")
+    print(f"    - Min AA:       {parsed_args.min_length}")
+    print(f"    - Total tasks:  {len(analysis_tasks)}\n")
 
     print(f"[*] Starting Analysis...")
-    print_progress_bar(0, len(tasks), prefix="Progress:", suffix="Complete", length=40)
+    display_progress_bar(0, len(analysis_tasks), prefix="Progress:", suffix="Complete", length=40)
 
     results: list[str] = []
-    with ProcessPoolExecutor(max_workers=args.workers) as executor:
+    with ProcessPoolExecutor(max_workers=parsed_args.workers) as executor:
         futures = []
-        for task_type, task_val in tasks:
+        for task_type, task_val in analysis_tasks:
             if task_type == "file":
                 futures.append(
                     executor.submit(
                         process_single_file,
                         task_val,
-                        args.min_length,
-                        start_codons_set,
-                        results_dir,
+                        parsed_args.min_length,
+                        allowed_start_codons,
+                        output_directory,
+                        forced_sequence_type,
                     )
                 )
             else:
@@ -285,18 +327,19 @@ def main() -> None:
                     executor.submit(
                         process_ncbi_id,
                         task_val,
-                        args.min_length,
-                        start_codons_set,
-                        results_dir,
+                        parsed_args.min_length,
+                        allowed_start_codons,
+                        output_directory,
+                        forced_sequence_type,
                     )
                 )
 
-        completed: int = 0
+        completed_tasks: int = 0
         for future in as_completed(futures):
             results.append(future.result())
-            completed += 1
-            print_progress_bar(
-                completed, len(tasks), prefix="Progress:", suffix="Complete", length=40
+            completed_tasks += 1
+            display_progress_bar(
+                completed_tasks, len(analysis_tasks), prefix="Progress:", suffix="Complete", length=40
             )
 
     print("\n[*] Summary:")

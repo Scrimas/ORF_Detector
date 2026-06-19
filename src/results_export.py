@@ -3,97 +3,92 @@ from __future__ import annotations
 from typing import Any
 
 
-def format_sequence_ncbi(
-    sequence: str, line_length: int = 50, chunk_size: int = 10
+def format_sequence_ncbi_style(
+    sequence_str: str, line_width: int = 50, block_size: int = 10
 ) -> str:
-    """
-    Formats a sequence into NCBI-style blocks with position numbers.
-    Example:
-            1 MALWMRLLPL LALLALWGPD PAAAFVNQHL CGSHLVEALY LVCGERGFFY
-           51 TPKTRREAED LQVGQVELGG GPGAGSLQPL ALEGSLQKRG IVEQCCTSIC
-    """
-    formatted_lines: list[str] = []
+    output_lines: list[str] = []
 
-    # Iterate over the sequence in chunks of `line_length` (default 50)
-    for i in range(0, len(sequence), line_length):
-        line_seq: str = sequence[i : i + line_length]
+    for i in range(0, len(sequence_str), line_width):
+        line_content: str = sequence_str[i : i + line_width]
 
-        # Sub-divide the line into blocks of `chunk_size` (default 10)
-        chunks: list[str] = [
-            line_seq[j : j + chunk_size] for j in range(0, len(line_seq), chunk_size)
+        line_blocks: list[str] = [
+            line_content[j : j + block_size] for j in range(0, len(line_content), block_size)
         ]
-        chunked_str: str = " ".join(chunks)
+        formatted_line_content: str = " ".join(line_blocks)
 
-        # Right-align the starting position number to 9 characters for the NCBI margin
-        formatted_lines.append(f"{i + 1:>9} {chunked_str}")
+        output_lines.append(f"{i + 1:>9} {formatted_line_content}")
 
-    return "\n".join(formatted_lines)
+    return "\n".join(output_lines)
 
 
-def export_protein_to_txt(protein_data: dict[str, Any], output_file: str) -> None:
-    """
-    Exports Protein analysis results to a structured text file.
-    """
-    with open(output_file, "w", encoding="utf-8") as f:
+def export_protein_report(
+    protein_records: list[dict[str, Any]], report_file_path: str
+) -> None:
+    with open(report_file_path, "w", encoding="utf-8") as f:
         f.write("=" * 60 + "\n")
         f.write("SeqProfiler: Protein Analysis Report\n")
         f.write("=" * 60 + "\n\n")
 
-        f.write(f"> {protein_data['sequence_id']}\n")
-        f.write("-" * 60 + "\n")
+        for protein_record in protein_records:
+            f.write(f"> {protein_record['sequence_id']}\n")
+            f.write("-" * 60 + "\n")
 
-        pp: dict[str, Any] = protein_data["prot_props"]
-        f.write(
-            f"Protein Length: {protein_data['length']} aa  | Mass: {pp['mass_kda']:.2f} kDa  | pI: {pp['pi']:.2f}  | Ext.C: {pp['ext_coeff']} M⁻¹·cm⁻¹\n\n"
-        )
+            protein_properties: dict[str, Any] = protein_record["prot_props"]
+            f.write(
+                f"Protein Length: {protein_record['length']} aa  | Mass: {protein_properties['mass_kda']:.2f} kDa  | pI: {protein_properties['pi']:.2f}\n"
+            )
+            f.write(
+                f"Ext.C (Reduced):  {protein_properties['ext_coeff_reduced']} M⁻¹·cm⁻¹\n"
+            )
+            f.write(
+                f"Ext.C (Oxidized): {protein_properties['ext_coeff_oxidized']} M⁻¹·cm⁻¹\n\n"
+            )
 
-        f.write("Sequence:\n")
-        formatted_seq: str = format_sequence_ncbi(protein_data["protein_1l"])
-        f.write(f"{formatted_seq}\n")
+            f.write("Sequence:\n")
+            formatted_protein_sequence: str = format_sequence_ncbi_style(
+                protein_record["protein_1l"]
+            )
+            f.write(f"{formatted_protein_sequence}\n\n\n")
 
 
-def export_orfs_to_txt(orfs: list[dict[str, Any]], output_file: str) -> None:
-    """
-    Exports ORF analysis results to a structured text file in Classic Bioinformatics format.
-
-    Args:
-        orfs (List[Dict]): List of ORF data dictionaries.
-        output_file (str): Path to the output file.
-    """
-    with open(output_file, "w", encoding="utf-8") as f:
+def export_orf_report(
+    orf_records: list[dict[str, Any]], report_file_path: str
+) -> None:
+    with open(report_file_path, "w", encoding="utf-8") as f:
         f.write("=" * 60 + "\n")
         f.write("SeqProfiler: ORF Analysis Report\n")
         f.write("=" * 60 + "\n\n")
 
-        if not orfs:
+        if not orf_records:
             f.write("No ORFs found matching the criteria.\n")
             return
 
-        for orf in orfs:
-            # Header
+        for orf in orf_records:
             f.write(
                 f"> {orf['sequence_id']} | Strand: {orf['strand']} | Pos: {orf['start_position']} - {orf['end_position']} bp\n"
             )
             f.write("-" * 60 + "\n")
 
-            # Aligned DNA Properties
-            dp: dict[str, Any] = orf["dna_props"]
+            dna_properties: dict[str, Any] = orf["dna_props"]
             f.write(
-                f"DNA     Length: {dp['length']} bp  | Mass: {dp['mass_da']:,.0f} Da | AT: {dp['at_prop']:.1f}% | GC: {dp['gc_prop']:.1f}% | Tm: {dp['tm']:.1f} °C\n"
+                f"DNA     Length: {dna_properties['length']} bp | Mass (ss): {dna_properties['mass_ss_da']:,.0f} Da | Mass (ds): {dna_properties['mass_ds_da']:,.0f} Da\n"
+            )
+            f.write(
+                f"        AT: {dna_properties['at_prop']:.1f}% | GC: {dna_properties['gc_prop']:.1f}% | Tm (50mM Na+): {dna_properties['tm']:.1f} °C\n"
             )
 
-            # RNA Properties
-            rp: dict[str, Any] = orf["rna_props"]
-            f.write(f"RNA     Mass: {rp['mass_da']:,.0f} Da\n")
+            rna_properties: dict[str, Any] = orf["rna_props"]
+            f.write(f"RNA     Mass: {rna_properties['mass_da']:,.0f} Da\n")
 
-            # Protein Properties
-            pp: dict[str, Any] = orf["prot_props"]
-            prot_len: int = len(orf["protein_1l"])
+            protein_properties: dict[str, Any] = orf["prot_props"]
+            protein_length: int = len(orf["protein_1l"])
             f.write(
-                f"Protein Length: {prot_len} aa  | Mass: {pp['mass_kda']:.2f} kDa  | pI: {pp['pi']:.2f}  | Ext.C: {pp['ext_coeff']} M⁻¹·cm⁻¹\n\n"
+                f"Protein Length: {protein_length} aa | Mass: {protein_properties['mass_kda']:.2f} kDa | pI: {protein_properties['pi']:.2f}\n"
+            )
+            f.write(
+                f"        Ext.C (Red/Ox): {protein_properties['ext_coeff_reduced']} / {protein_properties['ext_coeff_oxidized']} M⁻¹·cm⁻¹\n\n"
             )
 
-            # NCBI Chunked Sequence
             f.write("Sequence:\n")
-            formatted_seq: str = format_sequence_ncbi(orf["protein_1l"])
-            f.write(f"{formatted_seq}\n\n\n\n")
+            formatted_protein_sequence: str = format_sequence_ncbi_style(orf["protein_1l"])
+            f.write(f"{formatted_protein_sequence}\n\n\n\n")

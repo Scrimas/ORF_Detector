@@ -4,38 +4,46 @@
 
 ## Overview
 
-**SeqProfiler** is a purely foundational, from-scratch bioinformatics tool written in Python. It parses FASTA files, identifies Open Reading Frames (ORFs) in DNA/RNA, translates them into amino acids sequences, and calculates key biochemical properties (Mass, GC percentage, Tm, pI and Extinction Coefficient). It also supports direct analysis of protein sequences.
+**SeqProfiler** is a foundational bioinformatics tool written in Python. It parses FASTA files, identifies Open Reading Frames (ORFs), translates them, and calculates key biochemical properties (ssDNA/dsDNA Mass, GC%, salt-corrected Tm, pI, and dual Extinction Coefficients). It supports direct analysis of protein sequences and intelligently adapts its analysis based on the input type (e.g., mRNA vs. Genomic DNA).
 
 ## The "Vanilla Python" Philosophy
 
 If you are reviewing this code, you might wonder why I manually hardcoded a 64-codon dictionary, built custom string-slicing loops or wrote binary search algorithms to calculate biochemical properties instead of simply importing `Bio.SeqUtils` from Biopython.
 
-**This is intentional:** As a 3rd-year B.Sc. biology student in Grenoble, my goal was to deeply understand, but more importantly, to transcribe into code the mechanical logic of biology and the mathematics behind the biochemical properties. Relying on "black box" libraries would defeat the entire purpose of the exercise.
+**This is intentional:** As a Master's student in Molecular and Cellular Biology (MCB) in Grenoble, my goal was to deeply understand and transcribe into code the mechanical logic of biology and the mathematics behind the biochemical properties.
 
 ## Core Features
 
-- **Bi-Directional ORFs Detection:** Scans both forward and reverse DNA/RNA strands to identify all potential protein-coding regions.
-- **Transcription & Translation:** Transcribes and translates identified ORFs into 1-letter protein sequences.
+- **Context-Aware ORF Detection:** Intelligently scans strands based on sequence type. For example, it automatically skips reverse-strand analysis for mRNA/cDNA (`NM_` accessions), as the reverse complement has no biological existence in that context.
+- **Bi-Directional Scanning:** Full forward and reverse strand analysis for genomic DNA sequences.
+- **Transcription & Translation:** Simulates the biological flow of information from DNA to functional protein sequences.
 - **Protein Analysis:** Direct support for analyzing protein sequences (e.g., from NCBI).
-- **Biochemical calculations:** Calculates key physical properties (Mass, GC percentage, Tm, pI and Extinction Coefficient).
+- **Biochemical Calculations:** Calculates key physical properties with high biological accuracy (ssDNA/dsDNA Mass, GC%, salt-corrected Tm, pI, and both Reduced/Oxidized Extinction Coefficients).
 - **NCBI Integration:** Fetch and analyze DNA, RNA, or Protein sequences directly using NCBI accession IDs.
-- **Detailed Reports:** Generates structured reports for every ORF or Protein, maps coordinates and presents 1-letter protein sequences in a NCBI-style chunked blocks with position numbers.
+- **Detailed Reports:** Generates structured reports presenting results in a classic bioinformatics format.
 
 ## Calculations accuracy (SeqProfiler vs. Biopython)
 
 SeqProfiler was created as an educational exercise to translate core biological concepts into code from scratch and was certainly not made with the intention nor the pretension to outperform or replace Biopython, which remains the industry gold-standard.
-And because any custom-built bioinformatics tool requires rigorous verifications, SeqProfiler includes a `pytest` suite to validate its own "Vanilla Python" algorithms against Biopython to prove the fundamental math is sound.
+And because any custom-built bioinformatics tool requires rigorous verifications, SeqProfiler includes a `pytest` suite to validate its own "Vanilla Python" algorithms against Biopython.
 
-While the outputs are highly accurate, there are a few intentional, well-documented biochemical divergences based on different structural assumptions :
+### Identical Logic
 
-- **Sequence Mass:** Biopython's default behavior assumes a 5'-phosphate group while SeqProfiler's algorithm effectively assumes a 5'-hydroxyl group.
-  This results in a consistent 79.98 Da difference.
+The following calculations are mathematically identical to Biopython's outputs:
 
-- **Isoelectric Point:** Computational pI depends heavily on the dataset of pKa used. Biopython defaults to the Bjellqvist dataset whereas SeqProfiler utilizes the Lehninger pKa tables.
-  This results in slight increasing pI variations the longer the sequence is.
+- **GC Percentage:** Standard calculation ignoring unknown bases.
+- **Extinction Coefficient:** SeqProfiler calculates both the **Reduced** and **Oxidized** extinction coefficients. The oxidized version counts 125 M⁻¹·cm⁻¹ per **pair** of cysteines (disulfide bonds), aligning exactly with Biopython's standard for proteins in oxidative environments.
+- **Initiator Methionine:** Regardless of the DNA start codon used (e.g., GTG, CTG), SeqProfiler correctly translates the first amino acid of an ORF as **Methionine (M)**, reflecting the biological reality of the initiator tRNA.
+- **Melting Temperature (Tm):** Matches the salt-corrected formula (assuming **50mM Na+**), providing physiologically relevant outputs for small/medium sequences.
 
-- **Extinction Coefficient:** Biopython defaults to calculating an "oxidized" state, meaning it only counts cysteines that form disulfide bonds, adding a coefficient of 125 M⁻¹·cm⁻¹ per pair of cysteines. SeqProfiler takes a generalized approach, adding a coefficient of 125 M⁻¹·cm⁻¹ for every individual cysteine present in the sequence.
-  This results in increasing variations in extinction coefficient the more cysteines the sequence contains.
+### Intentional Divergences
+
+While the outputs are highly accurate, there are a few intentional, well-documented biochemical divergences based on different structural assumptions:
+
+- **Sequence Mass:** SeqProfiler reports both **Single-Stranded (ssDNA)** and **Double-Stranded (dsDNA)** mass. Biopython's default behavior assumes a 5'-phosphate group, while SeqProfiler effectively assumes a 5'-hydroxyl group. This results in a consistent 79.98 Da difference (per strand) when compared to Biopython.
+- **Isoelectric Point:** Computational pI depends heavily on the dataset of pKa used. Biopython defaults to the Bjellqvist dataset whereas SeqProfiler utilizes the Lehninger pKa tables. This results in slight variations that increase with sequence length.
+- **Unknown Characters:** SeqProfiler handles unknown amino acids (`X`) and nucleotides (`N`) by assigning them average biological masses (~110 Da and ~309 Da respectively) instead of ignoring them.
+- **Reverse Strand Coordinates:** To respect biological directionality (5' -> 3'), ORFs found on the reverse strand are reported with a `start_position` higher than the `end_position`, mapped to the forward reference strand.
 
 ## Quick Start (Installation & Usage)
 

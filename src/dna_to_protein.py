@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-GENETIC_CODE: dict[str, str] = {
+CODON_TO_AMINO_ACID: dict[str, str] = {
     "AAA": "Lys",
     "AAT": "Asn",
     "AAG": "Lys",
@@ -67,7 +67,7 @@ GENETIC_CODE: dict[str, str] = {
     "CCC": "Pro",
 }
 
-AA_3_TO_1: dict[str, str] = {
+AMINO_ACID_3_TO_1: dict[str, str] = {
     "Lys": "K",
     "Asn": "N",
     "Ile": "I",
@@ -93,40 +93,28 @@ AA_3_TO_1: dict[str, str] = {
 }
 
 
-def dna_to_protein(dna_codon: str) -> str:
-    """
-    Translates a single DNA codon into its 3-letter amino acid representation.
-
-    Args:
-        dna_codon (str): A 3-character DNA codon.
-
-    Returns:
-        str: The 3-letter amino acid code (e.g., "Met", "Ser") or "X" if unknown.
-    """
-    return GENETIC_CODE.get(dna_codon.upper(), "X")
+def translate_codon(codon: str) -> str:
+    return CODON_TO_AMINO_ACID.get(codon.upper().replace("U", "T"), "X")
 
 
-def translate_sequence(dna_sequence: str) -> tuple[str, str]:
-    """
-    Translates a DNA sequence into protein sequences (both 3-letter and 1-letter formats).
+def translate_sequence(
+    nucleotide_sequence: str, is_open_reading_frame: bool = False
+) -> tuple[str, str]:
+    protein_3letter_list: list[str] = []
+    protein_1letter_list: list[str] = []
 
-    Args:
-        dna_sequence (str): The DNA sequence to translate.
+    for i in range(0, len(nucleotide_sequence) - 2, 3):
+        codon: str = nucleotide_sequence[i : i + 3]
 
-    Returns:
-        Tuple[str, str]: A tuple containing (3-letter protein sequence, 1-letter protein sequence).
-    """
-    protein_3l: list[str] = []
-    protein_1l: list[str] = []
+        if i == 0 and is_open_reading_frame:
+            amino_acid_3letter = "Met"
+        else:
+            amino_acid_3letter = translate_codon(codon)
 
-    for i in range(0, len(dna_sequence) - 2, 3):
-        codon: str = dna_sequence[i : i + 3]
-        aa_3: str = dna_to_protein(codon)
-
-        if aa_3 == "Ter":
+        if amino_acid_3letter == "Ter":
             break
 
-        protein_3l.append(aa_3)
-        protein_1l.append(AA_3_TO_1.get(aa_3, "?"))
+        protein_3letter_list.append(amino_acid_3letter)
+        protein_1letter_list.append(AMINO_ACID_3_TO_1.get(amino_acid_3letter, "?"))
 
-    return "-".join(protein_3l), "".join(protein_1l)
+    return "-".join(protein_3letter_list), "".join(protein_1letter_list)

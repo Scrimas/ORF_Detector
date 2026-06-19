@@ -1,88 +1,103 @@
 from __future__ import annotations
 
 
-def calculate_dna_properties(sequence: str) -> dict[str, int | float]:
-    """
-    Calculates physical properties for a DNA sequence.
+def compute_dna_properties(dna_sequence: str) -> dict[str, int | float]:
+    sequence_length: int = len(dna_sequence)
+    if sequence_length == 0:
+        return {
+            "length": 0,
+            "mass_ss_da": 0.0,
+            "mass_ds_da": 0.0,
+            "gc_prop": 0.0,
+            "at_prop": 0.0,
+            "tm": 0.0,
+        }
 
-    Args:
-        sequence (str): The DNA sequence.
+    count_a: int = dna_sequence.count("A")
+    count_t: int = dna_sequence.count("T")
+    count_c: int = dna_sequence.count("C")
+    count_g: int = dna_sequence.count("G")
+    count_n: int = dna_sequence.count("N")
 
-    Returns:
-        Dict: Length, mass (Da), GC%, AT%, and Melting Temp (Tm).
-    """
-    length: int = len(sequence)
-    if length == 0:
-        return {"length": 0, "mass_da": 0.0, "gc_prop": 0.0, "at_prop": 0.0, "tm": 0.0}
-
-    a: int = sequence.count("A")
-    t: int = sequence.count("T")
-    c: int = sequence.count("C")
-    g: int = sequence.count("G")
-
-    gc_prop: float = ((g + c) / length) * 100
-    at_prop: float = ((a + t) / length) * 100
-
-    mass: float = (a * 313.21) + (t * 304.2) + (c * 289.18) + (g * 329.21) - 61.96
-
-    tm: float
-    if length < 14:
-        tm = (a + t) * 2 + (g + c) * 4
+    known_base_count: int = count_a + count_t + count_c + count_g
+    if known_base_count > 0:
+        gc_percentage: float = ((count_g + count_c) / known_base_count) * 100
+        at_percentage: float = ((count_a + count_t) / known_base_count) * 100
     else:
-        tm = 64.9 + 41 * (g + c - 16.4) / length
+        gc_percentage, at_percentage = 0.0, 0.0
+
+    single_stranded_mass: float = (
+        (count_a * 313.21)
+        + (count_t * 304.2)
+        + (count_c * 289.18)
+        + (count_g * 329.21)
+        + (count_n * 308.95)
+        - 61.96
+    )
+    double_stranded_mass: float = (
+        single_stranded_mass
+        + (count_t * 313.21)
+        + (count_a * 304.2)
+        + (count_g * 289.18)
+        + (count_c * 329.21)
+        + (count_n * 308.95)
+        - 61.96
+    )
+
+    import math
+
+    sodium_concentration = 0.05
+    melting_temperature: float = (
+        81.5
+        + 16.6 * math.log10(sodium_concentration)
+        + 0.41 * gc_percentage
+        - 675 / sequence_length
+    )
 
     return {
-        "length": length,
-        "mass_da": mass,
-        "gc_prop": gc_prop,
-        "at_prop": at_prop,
-        "tm": tm,
+        "length": sequence_length,
+        "mass_ss_da": single_stranded_mass,
+        "mass_ds_da": double_stranded_mass,
+        "gc_prop": gc_percentage,
+        "at_prop": at_percentage,
+        "tm": melting_temperature,
     }
 
 
-def calculate_rna_properties(sequence: str) -> dict[str, int | float]:
-    """
-    Calculates physical properties for an mRNA sequence.
-
-    Args:
-        sequence (str): The RNA sequence.
-
-    Returns:
-        Dict: Length and mass (Da).
-    """
-    length: int = len(sequence)
-    if length == 0:
+def compute_rna_properties(rna_sequence: str) -> dict[str, int | float]:
+    sequence_length: int = len(rna_sequence)
+    if sequence_length == 0:
         return {"length": 0, "mass_da": 0.0}
 
-    a: int = sequence.count("A")
-    u: int = sequence.count("U")
-    c: int = sequence.count("C")
-    g: int = sequence.count("G")
+    count_a: int = rna_sequence.count("A")
+    count_u: int = rna_sequence.count("U")
+    count_c: int = rna_sequence.count("C")
+    count_g: int = rna_sequence.count("G")
+    count_n: int = rna_sequence.count("N")
 
-    mass: float = (a * 329.21) + (u * 306.15) + (c * 305.18) + (g * 345.21) - 61.96
-    return {"length": length, "mass_da": mass}
+    molecular_weight: float = (
+        (count_a * 329.21)
+        + (count_u * 306.15)
+        + (count_c * 305.18)
+        + (count_g * 345.21)
+        + (count_n * 321.44)
+        - 61.96
+    )
+    return {"length": sequence_length, "mass_da": molecular_weight}
 
 
-def calculate_protein_properties(sequence: str) -> dict[str, float]:
-    """
-    Calculates biochemical properties for a protein sequence.
+def compute_protein_properties(protein_sequence: str) -> dict[str, float]:
+    clean_protein_sequence: str = protein_sequence.replace("*", "").replace("-", "")
+    sequence_length: int = len(clean_protein_sequence)
+    if sequence_length == 0:
+        return {
+            "mass_kda": 0.0,
+            "pi": 0.0,
+            "ext_coeff_reduced": 0.0,
+            "ext_coeff_oxidized": 0.0,
+        }
 
-    Optimized pI calculation by pre-counting amino acids to avoid O(N)
-    operations within the binary search loop.
-
-    Args:
-        sequence (str): The 1-letter protein sequence.
-
-    Returns:
-        Dict: Mass (kDa), pI, and Extinction Coefficient.
-    """
-
-    seq: str = sequence.replace("*", "")
-    length: int = len(seq)
-    if length == 0:
-        return {"mass_kda": 0.0, "pi": 0.0, "ext_coeff": 0.0}
-
-    aa_masses: dict[str, float] = {
+    amino_acid_mass_table: dict[str, float] = {
         "A": 71.0788,
         "R": 156.1875,
         "N": 114.1038,
@@ -103,50 +118,68 @@ def calculate_protein_properties(sequence: str) -> dict[str, float]:
         "W": 186.2132,
         "Y": 163.1760,
         "V": 99.1326,
-        "X": 0.0,
+        "X": 110.0,
     }
 
-    # Molecular Weight calculations
-    mass_da: float = sum(aa_masses.get(aa, 0.0) for aa in seq) + 18.01524
-    mass_kda: float = mass_da / 1000.0
+    molecular_weight_da: float = (
+        sum(amino_acid_mass_table.get(aa, 110.0) for aa in clean_protein_sequence)
+        + 18.01524
+    )
+    molecular_weight_kda: float = molecular_weight_da / 1000.0
 
-    aa_counts: dict[str, int] = {aa: seq.count(aa) for aa in set(seq)}
+    amino_acid_counts: dict[str, int] = {
+        aa: clean_protein_sequence.count(aa) for aa in set(clean_protein_sequence)
+    }
 
-    # Extinction Coefficient calculations
-    w: int = aa_counts.get("W", 0)
-    y: int = aa_counts.get("Y", 0)
-    c: int = aa_counts.get("C", 0)
-    ext_coeff: float = (w * 5500) + (y * 1490) + (c * 125)
+    tryptophan_count: int = amino_acid_counts.get("W", 0)
+    tyrosine_count: int = amino_acid_counts.get("Y", 0)
+    cysteine_count: int = amino_acid_counts.get("C", 0)
 
-    # pI calculation Constants
-    pka_n_term: float = 9.69
-    pka_c_term: float = 2.34
-    pka_basic: dict[str, float] = {"K": 10.53, "R": 12.48, "H": 6.00}
-    pka_acidic: dict[str, float] = {"D": 3.65, "E": 4.25, "C": 8.18, "Y": 10.07}
+    reduced_extinction_coefficient: float = (tryptophan_count * 5500) + (
+        tyrosine_count * 1490
+    )
+    oxidized_extinction_coefficient: float = reduced_extinction_coefficient + (
+        (cysteine_count // 2) * 125
+    )
 
-    def net_charge(pH: float) -> float:
-        """Helper to calculate net charge at a given pH."""
-        charge: float = 0.0
+    pka_n_terminus: float = 9.69
+    pka_c_terminus: float = 2.34
+    basic_pka_table: dict[str, float] = {"K": 10.53, "R": 12.48, "H": 6.00}
+    acidic_pka_table: dict[str, float] = {"D": 3.65, "E": 4.25, "C": 8.18, "Y": 10.07}
 
-        # Positive charges (N-term + basic AAs)
-        charge += 10 ** (pka_n_term - pH) / (1 + 10 ** (pka_n_term - pH))
-        for aa, pka in pka_basic.items():
-            charge += aa_counts.get(aa, 0) * (10 ** (pka - pH) / (1 + 10 ** (pka - pH)))
+    def calculate_net_charge(ph_value: float) -> float:
+        calculated_charge: float = 0.0
 
-        # Negative charges (C-term + acidic AAs)
-        charge -= 10 ** (pH - pka_c_term) / (1 + 10 ** (pH - pka_c_term))
-        for aa, pka in pka_acidic.items():
-            charge -= aa_counts.get(aa, 0) * (10 ** (pH - pka) / (1 + 10 ** (pH - pka)))
-        return charge
+        calculated_charge += (
+            10 ** (pka_n_terminus - ph_value) / (1 + 10 ** (pka_n_terminus - ph_value))
+        )
+        for aa, pka in basic_pka_table.items():
+            calculated_charge += amino_acid_counts.get(aa, 0) * (
+                10 ** (pka - ph_value) / (1 + 10 ** (pka - ph_value))
+            )
 
-    low: float = 0.0
-    high: float = 14.0
-    pi: float = 7.0
+        calculated_charge -= (
+            10 ** (ph_value - pka_c_terminus) / (1 + 10 ** (ph_value - pka_c_terminus))
+        )
+        for aa, pka in acidic_pka_table.items():
+            calculated_charge -= amino_acid_counts.get(aa, 0) * (
+                10 ** (ph_value - pka) / (1 + 10 ** (ph_value - pka))
+            )
+        return calculated_charge
+
+    lower_bound: float = 0.0
+    upper_bound: float = 14.0
+    isoelectric_point: float = 7.0
     for _ in range(100):
-        pi = (low + high) / 2
-        if net_charge(pi) > 0:
-            low = pi
+        isoelectric_point = (lower_bound + upper_bound) / 2
+        if calculate_net_charge(isoelectric_point) > 0:
+            lower_bound = isoelectric_point
         else:
-            high = pi
+            upper_bound = isoelectric_point
 
-    return {"mass_kda": mass_kda, "pi": pi, "ext_coeff": ext_coeff}
+    return {
+        "mass_kda": molecular_weight_kda,
+        "pi": isoelectric_point,
+        "ext_coeff_reduced": reduced_extinction_coefficient,
+        "ext_coeff_oxidized": oxidized_extinction_coefficient,
+    }

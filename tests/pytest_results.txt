@@ -1,22 +1,8 @@
 ============================= test session starts ==============================
-platform linux -- Python 3.14.3, pytest-8.4.2, pluggy-1.6.0 -- /usr/bin/python
-cachedir: .pytest_cache
-rootdir: /home/scrimas/Github/SeqProfiler
-collecting ... collected 14 items
+platform linux -- Python 3.14.5, pytest-9.0.3, pluggy-1.6.0
+rootdir: /home/scrimas/Projects/SeqProfiler
+collected 14 items
 
-tests/test_sequence_properties.py::TestDNAProperties::test_short_dna_mass PASSED
-tests/test_sequence_properties.py::TestDNAProperties::test_short_dna_gc_content PASSED
-tests/test_sequence_properties.py::TestDNAProperties::test_short_dna_melting_temp PASSED
-tests/test_sequence_properties.py::TestDNAProperties::test_long_dna_mass PASSED
-tests/test_sequence_properties.py::TestDNAProperties::test_long_dna_gc_content PASSED
-tests/test_sequence_properties.py::TestDNAProperties::test_long_dna_melting_temp PASSED
-tests/test_sequence_properties.py::TestRNAProperties::test_short_rna_mass PASSED
-tests/test_sequence_properties.py::TestRNAProperties::test_long_rna_mass PASSED
-tests/test_sequence_properties.py::TestProteinProperties::test_short_protein_mass PASSED
-tests/test_sequence_properties.py::TestProteinProperties::test_short_protein_pi PASSED
-tests/test_sequence_properties.py::TestProteinProperties::test_short_protein_extinction_coefficient PASSED
-tests/test_sequence_properties.py::TestProteinProperties::test_long_protein_mass PASSED
-tests/test_sequence_properties.py::TestProteinProperties::test_long_protein_pi PASSED
-tests/test_sequence_properties.py::TestProteinProperties::test_long_protein_extinction_coefficient PASSED
+tests/test_sequence_properties.py ..............                         [100%]
 
-============================== 14 passed in 0.03s ==============================
+============================== 14 passed in 0.05s ==============================
